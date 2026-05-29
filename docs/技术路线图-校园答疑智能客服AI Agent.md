@@ -13,29 +13,15 @@
 ## 一、核心技术栈
 
 ```
-前端：Gradio（最快上手） 或 Streamlit
+前端：Gradio（最快上手）
 后端：FastAPI（高性能异步API）
-大模型：二选一
-  ├── 方案A：Ollama + Qwen2.5-7B（本地，需GPU）
-  └── 方案B：DeepSeek API（在线，零门槛）
+大模型：DeepSeek API（在线，零门槛）
 向量数据库：ChromaDB（轻量，无需部署）
 Embedding：BGE-large-zh（中文语义理解）
 框架：LangChain（简化RAG开发）
 ```
 
-## 二、两套部署方案对比
-
-### 方案 A：本地部署（推荐有 GPU 的用户）
-
-| 优势 | 劣势 |
-|------|------|
-| ✅ 数据完全本地，安全 | ❌ 需要 NVIDIA GPU（8GB+） |
-| ✅ 无 API 调用费用 | ❌ 模型占用磁盘空间大（~15GB） |
-| ✅ 离线可用 | ❌ 推理速度取决于硬件 |
-
-**适合人群**：有游戏笔记本/台式机（带独显）、想学习本地部署的学生
-
-### 方案 B：API 调用（推荐新手快速上手）
+## 二、API 调用方案
 
 | 优势 | 劣势 |
 |------|------|
@@ -69,10 +55,7 @@ Embedding：BGE-large-zh（中文语义理解）
 
 第3-4天 ── 大模型接口
           │
-          ├── 选择部署方案（本地/API）
-          │   ├── 本地：安装 Ollama，拉取模型
-          │   └── API：申请 DeepSeek API Key
-          │
+          ├── 申请 DeepSeek API Key
           ├── 编写 LLM 封装模块
           └── 测试模型基本对话能力
 
@@ -165,7 +148,7 @@ RAG 的好处：
 ## 六、新手常见疑问
 
 ### Q1：我没有 GPU 能做吗？
-**可以！** 选择方案 B（API 调用），用 DeepSeek API，普通电脑就能跑。
+**可以！** 本项目使用 API 调用方式，用 DeepSeek API，普通电脑就能跑。
 
 ### Q2：需要多少 Python 基础？
 会基本的变量、函数、列表操作即可。本项目代码量约 500-800 行，有注释讲解。
@@ -184,7 +167,7 @@ RAG 的好处：
 ### 第一步（今天就能做）：
 1. 安装 Python 3.11：https://www.python.org/downloads/
 2. 安装 VS Code：https://code.visualstudio.com/
-3. 注册 DeepSeek API（如果选方案B）：https://platform.deepseek.com/
+3. 注册 DeepSeek API：https://platform.deepseek.com/
 4. 阅读本文档，理解整体架构
 
 ### 第二步（明天开始）：

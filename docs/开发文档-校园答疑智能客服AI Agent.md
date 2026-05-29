@@ -3,7 +3,7 @@
 ## 一、项目概述
 
 ### 1.1 项目目标
-构建一个基于大语言模型（LLM）的校园答疑智能客服系统，能够回答学生关于校园生活、教务管理、选课、考试、图书馆、食堂、宿舍等方面的常见问题。系统采用轻量化部署方案，降低硬件要求，方便本地化运行。
+构建一个基于大语言模型（LLM）的校园答疑智能客服系统，能够回答学生关于校园生活、教务管理、选课、考试、图书馆、食堂、宿舍等方面的常见问题。通过API调用云端大模型，无需本地GPU硬件。
 
 ### 1.2 核心功能
 - **智能问答**：基于校园知识库回答学生问题
@@ -13,7 +13,7 @@
 - **多渠道接入**：支持 Web 页面、微信公众号等前端入口
 
 ### 1.3 技术特色
-- 轻量化部署：使用小参数量模型或 API 调用方式
+- 零GPU要求：通过API调用云端大模型
 - 低门槛：适合个人开发者或小团队
 - 可扩展：知识库可灵活更新
 
@@ -51,23 +51,16 @@
 |------|----------|------|
 | **编程语言** | Python 3.10+ | 生态完善，AI 库支持好 |
 | **Web 框架** | FastAPI | 高性能异步框架，自带 API 文档 |
-| **前端界面** | Gradio 或 Streamlit | 快速搭建，适合原型开发 |
-| **大语言模型** | Qwen2.5-7B / ChatGLM3-6B / DeepSeek API | 国产开源模型，中文能力强 |
+| **前端界面** | Gradio | 快速搭建，适合原型开发 |
+| **大语言模型** | DeepSeek API | 云端大模型，中文能力强 |
 | **向量数据库** | ChromaDB | 轻量级，无需额外部署 |
 | **Embedding 模型** | BGE-large-zh 或 text-embedding-v3 | 中文语义向量化 |
 | **Prompt 框架** | LangChain | 统一管理 RAG 流程 |
 | **文档解析** | PyPDF2 / python-docx | 解析校园文档 |
 
-### 2.3 两种部署模式
+### 2.3 部署模式
 
-#### 模式 A：本地部署（推荐学习）
-适合有 GPU 显卡（8GB+显存）或想学习本地部署的用户：
-- 使用 Ollama + Qwen2.5-7B-Chinese
-- 优点：数据安全、无 API 费用
-- 缺点：需要 GPU 硬件
-
-#### 模式 B：API 调用（推荐快速上手）
-适合没有 GPU 的用户：
+#### API 调用模式
 - 调用 DeepSeek / 通义千问 / 智谱 API
 - 优点：零硬件要求、快速启动
 - 缺点：有 API 调用费用、依赖网络
@@ -78,15 +71,7 @@
 
 ### 3.1 硬件要求
 
-#### 模式 A 本地部署
-| 配置项 | 最低要求 | 推荐配置 |
-|--------|----------|----------|
-| CPU | Intel i5 / AMD R5 | Intel i7 / AMD R7 |
-| 内存 | 8GB | 16GB+ |
-| GPU | NVIDIA 8GB 显存 | NVIDIA 16GB+ 显存 |
-| 硬盘 | 20GB 可用空间 | 50GB+ SSD |
-
-#### 模式 B API 调用
+#### API 调用模式
 | 配置项 | 要求 |
 |--------|------|
 | CPU | 任意 |
@@ -103,11 +88,9 @@
 | pip | 最新版 | 包管理 |
 | Git | 最新版 | 版本控制 |
 | VS Code | 最新版 | 代码编辑器 |
-| Ollama（可选） | 最新版 | 本地运行大模型 |
-| CUDA（可选） | 12.x | GPU 加速 |
 
-### 3.3 API 申请（模式 B）
-如果选择 API 调用模式，需要申请以下 API：
+### 3.3 API 申请
+需要申请大模型API：
 - **DeepSeek API**：https://platform.deepseek.com/ （注册送 500 万 token 免费额度）
 - **通义千问 API**：https://dashscope.aliyun.com/ （注册送免费额度）
 - **智谱 API**：https://open.bigmodel.cn/ （注册送免费额度）
@@ -263,24 +246,6 @@ pip freeze > requirements.txt
 
 ### 阶段三：搭建大模型接口（第 3-4 天）
 
-#### 方案 A：本地 Ollama 部署
-
-**步骤 1：安装 Ollama**
-```bash
-# 下载 Ollama: https://ollama.com/download
-# 安装后在终端运行：
-ollama pull qwen2.5:7b
-
-# 测试运行
-ollama run qwen2.5:7b
-```
-
-**步骤 2：编写 LLM 封装模块** (`src/core/llm.py`)
-- 封装 Ollama API 调用
-- 统一接口，方便后续切换模型
-
-#### 方案 B：API 调用
-
 **步骤 1：获取 API Key**
 - 注册 DeepSeek 开放平台账号
 - 获取 API Key
@@ -288,11 +253,10 @@ ollama run qwen2.5:7b
 **步骤 2：配置环境变量**
 创建 `config/.env`:
 ```
-LLM_PROVIDER=deepseek
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 ```
 
-**步骤 3：编写 LLM 封装模块**
+**步骤 3：编写 LLM 封装模块** (`src/core/llm.py`)
 - 封装 DeepSeek API 调用
 - 支持流式输出
 
@@ -382,7 +346,7 @@ GET  /api/history/{id}  # 获取对话历史
 
 ### 阶段八：部署上线（第 8-10 天）
 
-#### 方案 1：本地部署
+#### 本地运行
 ```bash
 # 启动后端服务
 uvicorn src.main:app --host 0.0.0.0 --port 8000
@@ -391,7 +355,7 @@ uvicorn src.main:app --host 0.0.0.0 --port 8000
 python src/frontend/app.py
 ```
 
-#### 方案 2：Docker 部署
+#### Docker 部署
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -401,7 +365,7 @@ EXPOSE 8000
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-#### 方案 3：云服务器部署
+#### 云服务器部署
 - 购买轻量云服务器（如阿里云、腾讯云）
 - 部署到服务器
 - 配置域名和 HTTPS
@@ -441,10 +405,9 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 | 问题 | 解决方案 |
 |------|----------|
 | 模型回答不准确 | 优化 Prompt，增加检索数量，检查知识库内容 |
-| 检索速度慢 | 优化 Embedding 模型，使用更小的模型，增加硬件 |
+| 检索速度慢 | 优化 Embedding 模型，使用更小的模型 |
 | 中文乱码 | 确保文件编码为 UTF-8 |
 | API 调用失败 | 检查网络和 API Key 是否正确 |
-| 内存不足 | 使用更小的模型，或切换为 API 调用模式 |
 
 ---
 

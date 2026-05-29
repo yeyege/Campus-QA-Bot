@@ -1,11 +1,11 @@
 # Campus QA Bot - Project Overview
 
 ## Project Description
-校园答疑智能客服 AI Agent - 一个基于大语言模型的校园答疑系统，采用 RAG（检索增强生成）技术，使用轻量化部署方案。
+校园答疑智能客服 AI Agent - 一个基于大语言模型的校园答疑系统，采用 RAG（检索增强生成）技术，通过API调用云端大模型实现。
 
 ## Tech Stack
 - Python 3.10+ / FastAPI / Gradio
-- LLM: Ollama + Qwen2.5-7B (本地) 或 DeepSeek API (在线)
+- LLM: DeepSeek API (或其他在线API)
 - Vector DB: ChromaDB
 - Embedding: BGE-large-zh
 - Framework: LangChain
