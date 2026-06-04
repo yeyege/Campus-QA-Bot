@@ -2,11 +2,16 @@
 Agent核心模块 - 多轮对话支持
 """
 import os
+import hashlib
+import time
 from typing import List, Dict, Generator, Optional
 
 from src.core.llm import get_llm_client
 from src.core.knowledge_loader import KnowledgeLoader
 from src.core.conversation import conversation_manager
+from src.core.feedback import feedback_manager
+from src.core.logger import logger
+from src.core.exceptions import LLMError, RetrievalError
 
 # Prompt模板
 SYSTEM_PROMPT = """你是校园智能助手"小智"，专注于校园知识问答。
@@ -73,40 +78,64 @@ class CampusAgent:
 
     def chat(self, question: str, session_id: str = "default", top_k: int = 2) -> str:
         """多轮对话聊天"""
-        # 检索知识库
-        search_results = self._get_cached_search(question, top_k)
-        context = self._format_context(search_results)
+        start_time = time.time()
 
-        # 构建带历史的消息
-        messages = self._build_messages_with_history(session_id, question, context)
+        try:
+            # 检索知识库
+            search_results = self._get_cached_search(question, top_k)
+            context = self._format_context(search_results)
 
-        # 调用LLM
-        response = self.llm_client.chat(messages, max_tokens=256)
+            logger.log_retrieval(question, len(search_results), search_results[0]["distance"] if search_results else 0)
 
-        # 保存对话历史
-        conversation_manager.add_message(session_id, "user", question)
-        conversation_manager.add_message(session_id, "assistant", response)
+            # 构建带历史的消息
+            messages = self._build_messages_with_history(session_id, question, context)
 
-        return response
+            # 调用LLM
+            response = self.llm_client.chat(messages, max_tokens=256)
+
+            # 保存对话历史
+            conversation_manager.add_message(session_id, "user", question)
+            conversation_manager.add_message(session_id, "assistant", response)
+
+            latency = time.time() - start_time
+            logger.log_request(question, response, latency, session_id)
+
+            return response
+        except Exception as e:
+            if "LLM" in str(type(e).__name__) or "API" in str(type(e).__name__):
+                raise LLMError(str(e))
+            raise
 
     def chat_stream(self, question: str, session_id: str = "default", top_k: int = 2) -> Generator[str, None, None]:
         """多轮对话流式聊天"""
-        # 检索知识库
-        search_results = self._get_cached_search(question, top_k)
-        context = self._format_context(search_results)
+        start_time = time.time()
 
-        # 构建带历史的消息
-        messages = self._build_messages_with_history(session_id, question, context)
+        try:
+            # 检索知识库
+            search_results = self._get_cached_search(question, top_k)
+            context = self._format_context(search_results)
 
-        # 流式调用LLM
-        full_response = ""
-        for chunk in self.llm_client.chat_stream(messages, max_tokens=256):
-            full_response += chunk
-            yield chunk
+            logger.log_retrieval(question, len(search_results), search_results[0]["distance"] if search_results else 0)
 
-        # 保存对话历史
-        conversation_manager.add_message(session_id, "user", question)
-        conversation_manager.add_message(session_id, "assistant", full_response)
+            # 构建带历史的消息
+            messages = self._build_messages_with_history(session_id, question, context)
+
+            # 流式调用LLM
+            full_response = ""
+            for chunk in self.llm_client.chat_stream(messages, max_tokens=256):
+                full_response += chunk
+                yield chunk
+
+            # 保存对话历史
+            conversation_manager.add_message(session_id, "user", question)
+            conversation_manager.add_message(session_id, "assistant", full_response)
+
+            latency = time.time() - start_time
+            logger.log_request(question, full_response, latency, session_id)
+        except Exception as e:
+            if "LLM" in str(type(e).__name__) or "API" in str(type(e).__name__):
+                raise LLMError(str(e))
+            raise
 
     def get_history(self, session_id: str) -> List[Dict]:
         """获取对话历史"""

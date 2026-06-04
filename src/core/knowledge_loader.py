@@ -3,8 +3,13 @@
 读取FAQ文档，分割成chunks，存入ChromaDB
 """
 import os
+import sys
 import re
 from typing import List, Tuple
+
+# 添加项目根目录到模块搜索路径
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, PROJECT_ROOT)
 
 import chromadb
 
@@ -13,9 +18,9 @@ os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 
 class KnowledgeLoader:
-    def __init__(self, faq_dir: str = "knowledge_base/faq", persist_dir: str = "knowledge_base/processed"):
-        self.faq_dir = faq_dir
-        self.persist_dir = persist_dir
+    def __init__(self, faq_dir: str = None, persist_dir: str = None):
+        self.faq_dir = faq_dir or os.path.join(PROJECT_ROOT, "knowledge_base", "faq")
+        self.persist_dir = persist_dir or os.path.join(PROJECT_ROOT, "knowledge_base", "processed")
         self.embedding_model = None
         self.client = None
         self.collection = None

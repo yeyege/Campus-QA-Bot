@@ -8,8 +8,9 @@ from dotenv import load_dotenv
 from typing import List, Dict, Generator
 from concurrent.futures import ThreadPoolExecutor
 
-# 加载环境变量
-load_dotenv("config/.env")
+# 加载环境变量（基于项目根目录）
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(_project_root, "config", ".env"))
 
 # 全局连接池
 _executor = ThreadPoolExecutor(max_workers=2)
@@ -71,7 +72,11 @@ class XiaomiMimoClient(LLMClient):
         response = self._make_request(data, stream=False)
         result = response.json()
         message = result["choices"][0]["message"]
-        return message.get("content", "") or ""
+        content = message.get("content", "") or ""
+        # mimo-v2.5推理模型的回复可能在reasoning_content中
+        if not content:
+            content = message.get("reasoning_content", "") or ""
+        return content
 
     def chat_stream(self, messages: List[Dict], temperature: float = None, max_tokens: int = None) -> Generator[str, None, None]:
         """流式聊天"""

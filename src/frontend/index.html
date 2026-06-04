@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校园答疑智能客服</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    background: #f5f7fa; color: #333; font-size: 14px; line-height: 1.5;
+}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ===== Layout ===== */
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* --- Top Nav --- */
+.top-nav {
+    height: 48px; background: #fff; border-bottom: 1px solid #e5e7eb;
+    display: flex; align-items: center; padding: 0 24px; flex-shrink: 0; z-index: 10;
+}
+.top-nav nav { display: flex; gap: 28px; }
+.top-nav nav a {
+    color: #6b7280; text-decoration: none; font-size: 14px; padding: 4px 0;
+    border-bottom: 2px solid transparent; transition: all .2s; cursor: pointer;
+}
+.top-nav nav a:hover { color: #333; }
+.top-nav nav a.active { color: #3b82f6; font-weight: 600; border-bottom-color: #3b82f6; }
+
+/* --- Main Row --- */
+.main-row { display: flex; flex: 1; overflow: hidden; }
+
+/* --- Left Sidebar (180px) --- */
+.left-sidebar {
+    width: 180px; flex-shrink: 0; background: #fff;
+    border-right: 1px solid #e5e7eb; display: flex; flex-direction: column;
+    padding: 20px 12px;
+}
+.sidebar-label { color: #9ca3af; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; padding: 0 12px; }
+.menu-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; cursor: pointer; color: #4b5563; font-size: 14px;
+    transition: all .15s; margin-bottom: 2px; user-select: none;
+}
+.menu-item:hover { background: #f3f4f6; }
+.menu-item.active { background: #eff6ff; color: #3b82f6; font-weight: 500; }
+.menu-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar-sub { padding-left: 28px; margin-top: 4px; }
+.sidebar-sub .menu-item { font-size: 13px; padding: 8px 12px; }
+.sidebar-sub .menu-item svg { width: 14px; height: 14px; }
+
+/* --- Session Panel (260px) --- */
+.session-panel {
+    width: 260px; flex-shrink: 0; background: #fafbfc;
+    border-right: 1px solid #e5e7eb; display: flex; flex-direction: column;
+}
+.session-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid #e5e7eb;
+}
+.session-header h3 { font-size: 15px; font-weight: 600; color: #111827; }
+.session-header-btn {
+    background: none; border: 1px solid #e5e7eb; border-radius: 6px;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #6b7280; transition: all .15s;
+}
+.session-header-btn:hover { background: #f3f4f6; color: #333; border-color: #d1d5db; }
+
+.session-search { padding: 10px 16px; border-bottom: 1px solid #e5e7eb; }
+.session-search input {
+    width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;
+    font-size: 13px; outline: none; background: #fff; transition: border-color .2s;
+}
+.session-search input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.1); }
+.session-search input::placeholder { color: #9ca3af; }
+
+.session-list { flex: 1; overflow-y: auto; padding: 8px; }
+.session-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    margin-bottom: 2px; transition: background .15s; user-select: none;
+}
+.session-item:hover { background: #f3f4f6; }
+.session-item.active { background: #eff6ff; }
+.session-item-info { flex: 1; min-width: 0; }
+.session-item-title { font-size: 13px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.session-item-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.session-item-del {
+    background: none; border: none; cursor: pointer; padding: 2px 4px;
+    border-radius: 4px; color: #9ca3af; font-size: 14px; opacity: 0; transition: opacity .15s;
+}
+.session-item:hover .session-item-del { opacity: 1; }
+.session-item-del:hover { color: #ef4444; background: #fef2f2; }
+
+/* --- Chat Area --- */
+.chat-area { flex: 1; display: flex; flex-direction: column; background: #fff; min-width: 0; }
+.chat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 20px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+}
+.chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: #3b82f6;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+}
+.chat-info .chat-name { font-size: 14px; font-weight: 600; color: #111827; }
+.chat-info .chat-status { font-size: 12px; color: #10b981; display: flex; align-items: center; gap: 4px; }
+.chat-info .chat-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block; }
+
+/* --- Messages --- */
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.msg { display: flex; gap: 10px; max-width: 75%; animation: fadeIn .2s ease; }
+.msg.user { flex-direction: row-reverse; margin-left: auto; }
+.msg.assistant { flex-direction: row; }
+.msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 13px; font-weight: 600; color: #fff;
+}
+.msg.user .msg-avatar { background: #6366f1; }
+.msg.assistant .msg-avatar { background: #3b82f6; }
+.msg-body { display: flex; flex-direction: column; }
+.msg-bubble {
+    padding: 10px 14px; border-radius: 12px; font-size: 14px;
+    line-height: 1.65; word-wrap: break-word; white-space: pre-wrap;
+}
+.msg.user .msg-bubble { background: #3b82f6; color: #fff; border-bottom-right-radius: 4px; }
+.msg.assistant .msg-bubble { background: #f3f4f6; color: #333; border-bottom-left-radius: 4px; }
+.msg-time { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+.msg.user .msg-time { text-align: right; }
+
+/* typing indicator */
+.typing-dots { display: flex; gap: 4px; padding: 4px 0; }
+.typing-dots span {
+    width: 6px; height: 6px; border-radius: 50%; background: #9ca3af;
+    animation: bounce .6s infinite alternate;
+}
+.typing-dots span:nth-child(2) { animation-delay: .2s; }
+.typing-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes bounce { to { opacity: .3; transform: translateY(-4px); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* --- Input Area --- */
+.input-area {
+    border-top: 1px solid #e5e7eb; padding: 12px 20px;
+    display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+}
+.attach-btn {
+    background: none; border: none; cursor: pointer; padding: 8px;
+    border-radius: 6px; color: #6b7280; display: flex; align-items: center;
+    justify-content: center; transition: all .15s; flex-shrink: 0;
+}
+.attach-btn:hover { background: #f3f4f6; color: #333; }
+.input-wrap {
+    flex: 1; display: flex; align-items: flex-end; border: 1px solid #e5e7eb;
+    border-radius: 10px; padding: 0 4px 0 14px; background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+}
+.input-wrap:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.1); }
+.input-wrap textarea {
+    flex: 1; border: none; outline: none; resize: none; padding: 10px 0;
+    font-size: 14px; font-family: inherit; line-height: 1.5;
+    min-height: 20px; max-height: 120px; background: transparent;
+}
+.input-wrap textarea::placeholder { color: #9ca3af; }
+.send-btn {
+    background: #3b82f6; border: none; border-radius: 8px; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    flex-shrink: 0; transition: background .15s;
+}
+.send-btn:hover { background: #2563eb; }
+.send-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+.send-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+/* ===== Empty State ===== */
+.empty-hint { color: #9ca3af; font-size: 13px; text-align: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+    <!-- ===== Top Nav ===== -->
+    <div class="top-nav">
+        <nav>
+            <a class="active">探索</a>
+            <a>工作室</a>
+            <a>知识库</a>
+            <a>工具市场</a>
+        </nav>
+    </div>
+
+    <!-- ===== Main Row ===== -->
+    <div class="main-row">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <div class="sidebar-label">菜单</div>
+            <div class="menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <span>探索</span>
+            </div>
+            <div class="menu-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span>工作区</span>
+            </div>
+            <div class="sidebar-sub">
+                <div class="menu-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>网站小助手</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Panel -->
+        <div class="session-panel">
+            <div class="session-header">
+                <h3>会话列表</h3>
+                <button class="session-header-btn" id="newSessionBtn" title="新建会话">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+            </div>
+            <div class="session-search">
+                <input type="text" id="searchInput" placeholder="搜索会话...">
+            </div>
+            <div class="session-list" id="sessionList"></div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-avatar">助</div>
+                <div class="chat-info">
+                    <div class="chat-name">网站小助手</div>
+                    <div class="chat-status">在线</div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="input-area">
+                <button class="attach-btn" title="添加附件">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+                <div class="input-wrap">
+                    <textarea id="msgInput" rows="1" placeholder="输入消息...(Shift+Enter换行, Enter发送)"></textarea>
+                    <button class="send-btn" id="sendBtn" title="发送">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// Config
+// ============================================================
+const API_BASE = 'http://127.0.0.1:8000';
+const GREETING = '你好！我是你的AI助手，有什么可以帮助你的吗？';
+
+// ============================================================
+// State
+// ============================================================
+let sessions = {};          // { sid: { title, time, messages: [{role, content, time}] } }
+let currentSessionId = null;
+
+// ============================================================
+// Helpers
+// ============================================================
+function genId() { return 's_' + Math.random().toString(36).slice(2, 10); }
+function now() { return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }); }
+
+function createSession() {
+    const sid = genId();
+    sessions[sid] = {
+        title: '新会话',
+        time: now(),
+        messages: [{ role: 'assistant', content: GREETING, time: now() }]
+    };
+    return sid;
+}
+
+// ============================================================
+// Render: Session List
+// ============================================================
+function renderSessionList(filter = '') {
+    const el = document.getElementById('sessionList');
+    const ids = Object.keys(sessions);
+    const q = filter.trim().toLowerCase();
+
+    if (!ids.length) {
+        el.innerHTML = '<div class="empty-hint">暂无会话</div>';
+        return;
+    }
+
+    el.innerHTML = ids
+        .filter(id => !q || sessions[id].title.toLowerCase().includes(q))
+        .map(id => {
+            const s = sessions[id];
+            const active = id === currentSessionId ? ' active' : '';
+            return `
+                <div class="session-item${active}" data-id="${id}">
+                    <div class="session-item-info">
+                        <div class="session-item-title">${esc(s.title)}</div>
+                        <div class="session-item-time">${s.time}</div>
+                    </div>
+                    <button class="session-item-del" data-del="${id}" title="删除会话">&times;</button>
+                </div>`;
+        }).join('');
+
+    // bind clicks
+    el.querySelectorAll('.session-item').forEach(item => {
+        item.addEventListener('click', e => {
+            if (e.target.closest('.session-item-del')) return;
+            switchSession(item.dataset.id);
+        });
+    });
+    el.querySelectorAll('.session-item-del').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteSession(btn.dataset.del);
+        });
+    });
+}
+
+// ============================================================
+// Render: Messages
+// ============================================================
+function renderMessages() {
+    const el = document.getElementById('chatMessages');
+    if (!currentSessionId || !sessions[currentSessionId]) { el.innerHTML = ''; return; }
+    const msgs = sessions[currentSessionId].messages;
+
+    el.innerHTML = msgs.map(m => {
+        const isUser = m.role === 'user';
+        const cls = isUser ? 'user' : 'assistant';
+        const avatar = isUser ? '我' : '助';
+        return `
+            <div class="msg ${cls}">
+                <div class="msg-avatar">${avatar}</div>
+                <div class="msg-body">
+                    <div class="msg-bubble">${esc(m.content)}</div>
+                    <div class="msg-time">${m.time || ''}</div>
+                </div>
+            </div>`;
+    }).join('');
+
+    el.scrollTop = el.scrollHeight;
+}
+
+function appendMessage(role, content, time) {
+    const el = document.getElementById('chatMessages');
+    const isUser = role === 'user';
+    const cls = isUser ? 'user' : 'assistant';
+    const avatar = isUser ? '我' : '助';
+    const html = `
+        <div class="msg ${cls}">
+            <div class="msg-avatar">${avatar}</div>
+            <div class="msg-body">
+                <div class="msg-bubble">${esc(content)}</div>
+                <div class="msg-time">${time}</div>
+            </div>
+        </div>`;
+    el.insertAdjacentHTML('beforeend', html);
+    el.scrollTop = el.scrollHeight;
+    return el.lastElementChild;
+}
+
+function updateLastBubble(text) {
+    const el = document.getElementById('chatMessages');
+    const bubbles = el.querySelectorAll('.msg.assistant .msg-bubble');
+    if (bubbles.length) {
+        bubbles[bubbles.length - 1].textContent = text;
+        el.scrollTop = el.scrollHeight;
+    }
+}
+
+function showTyping() {
+    const el = document.getElementById('chatMessages');
+    const html = `
+        <div class="msg assistant" id="typingMsg">
+            <div class="msg-avatar">助</div>
+            <div class="msg-body">
+                <div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+            </div>
+        </div>`;
+    el.insertAdjacentHTML('beforeend', html);
+    el.scrollTop = el.scrollHeight;
+}
+
+function removeTyping() {
+    const t = document.getElementById('typingMsg');
+    if (t) t.remove();
+}
+
+// ============================================================
+// Session Actions
+// ============================================================
+function switchSession(sid) {
+    if (!sessions[sid]) return;
+    currentSessionId = sid;
+    renderSessionList(document.getElementById('searchInput').value);
+    renderMessages();
+}
+
+function deleteSession(sid) {
+    if (!sessions[sid]) return;
+    delete sessions[sid];
+    if (currentSessionId === sid) {
+        const ids = Object.keys(sessions);
+        currentSessionId = ids.length ? ids[0] : createSession();
+    }
+    renderSessionList(document.getElementById('searchInput').value);
+    renderMessages();
+}
+
+function newSession() {
+    const sid = createSession();
+    currentSessionId = sid;
+    renderSessionList(document.getElementById('searchInput').value);
+    renderMessages();
+    document.getElementById('msgInput').focus();
+}
+
+// ============================================================
+// Chat (Streaming via SSE)
+// ============================================================
+async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !currentSessionId) return;
+
+    input.value = '';
+    autoResize(input);
+    const ts = now();
+
+    // ensure session exists
+    if (!sessions[currentSessionId]) {
+        sessions[currentSessionId] = { title: '新会话', time: ts, messages: [] };
+    }
+
+    const session = sessions[currentSessionId];
+
+    // first message -> update title
+    if (session.messages.length <= 1 && session.messages[0]?.role === 'assistant') {
+        session.title = text.length > 20 ? text.slice(0, 20) : text;
+        renderSessionList(document.getElementById('searchInput').value);
+    }
+
+    // add user message
+    session.messages.push({ role: 'user', content: text, time: ts });
+    appendMessage('user', text, ts);
+
+    // show typing
+    showTyping();
+    document.getElementById('sendBtn').disabled = true;
+
+    // stream response
+    try {
+        const resp = await fetch(API_BASE + '/api/chat/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, session_id: currentSessionId })
+        });
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        removeTyping();
+        let full = '';
+        appendMessage('assistant', '', ts);
+        const bubbles = document.querySelectorAll('.msg.assistant .msg-bubble');
+        const bubble = bubbles[bubbles.length - 1];
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') continue;
+                try {
+                    const obj = JSON.parse(data);
+                    if (obj.session_id) continue;
+                } catch {
+                    // plain text chunk
+                    full += data;
+                    bubble.textContent = full;
+                    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+                }
+            }
+        }
+
+        session.messages.push({ role: 'assistant', content: full, time: ts });
+    } catch (err) {
+        removeTyping();
+        const errMsg = '抱歉，处理您的问题时出现错误：' + err.message;
+        appendMessage('assistant', errMsg, ts);
+        session.messages.push({ role: 'assistant', content: errMsg, time: ts });
+    }
+
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+}
+
+// ============================================================
+// Utils
+// ============================================================
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+function autoResize(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+
+// ============================================================
+// Init
+// ============================================================
+(function init() {
+    // create default session
+    const sid = createSession();
+    currentSessionId = sid;
+    renderSessionList();
+    renderMessages();
+
+    // event: send
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('msgInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+    document.getElementById('msgInput').addEventListener('input', function() { autoResize(this); });
+
+    // event: new session
+    document.getElementById('newSessionBtn').addEventListener('click', newSession);
+
+    // event: search
+    document.getElementById('searchInput').addEventListener('input', function() {
+        renderSessionList(this.value);
+    });
+})();
+</script>
+</body>
+</html>
