@@ -1,0 +1,15 @@
+# IDE
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables (contains secrets)
+config/.env
+
+# ChromaDB / runtime data
+data/
+chroma_db/

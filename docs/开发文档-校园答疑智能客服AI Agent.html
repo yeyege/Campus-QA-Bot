@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园答疑智能客服 AI Agent 开发文档</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        h3 {
+            color: #4a5568;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+        }
+        h4 {
+            color: #2d3748;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        tr:hover {
+            background: #edf2f7;
+        }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            padding: 15px 20px;
+            border-left: 4px solid #667eea;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        .info-box {
+            background: #e0f2fe;
+            border: 1px solid #0ea5e9;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #667eea, transparent);
+            margin: 30px 0;
+        }
+        .tree {
+            background: #1e293b;
+            color: #a5f3fc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: "Consolas", monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>校园答疑智能客服 AI Agent</h1>
+            <p>开发文档 - 完整技术指南</p>
+        </div>
+
+        <div class="section">
+            <h2>一、项目概述</h2>
+
+            <h3>1.1 项目目标</h3>
+            <p>构建一个基于大语言模型（LLM）的校园答疑智能客服系统，能够回答学生关于校园生活、教务管理、选课、考试、图书馆、食堂、宿舍等方面的常见问题。通过API调用云端大模型，无需本地GPU硬件。</p>
+
+            <h3>1.2 核心功能</h3>
+            <ul>
+                <li><strong>智能问答</strong>：基于校园知识库回答学生问题</li>
+                <li><strong>多轮对话</strong>：支持上下文理解，连续对话</li>
+                <li><strong>知识检索增强</strong>：结合检索增强生成（RAG）技术，提升回答准确性</li>
+                <li><strong>意图识别</strong>：识别学生问题属于哪个类别（教务、生活、设施等）</li>
+                <li><strong>多渠道接入</strong>：支持 Web 页面、微信公众号等前端入口</li>
+            </ul>
+
+            <h3>1.3 技术特色</h3>
+            <ul>
+                <li>零GPU要求：通过API调用云端大模型</li>
+                <li>低门槛：适合个人开发者或小团队</li>
+                <li>可扩展：知识库可灵活更新</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>二、技术路线</h2>
+
+            <h3>2.1 整体架构图</h3>
+            <div class="tree">┌─────────────────────────────────────────────────────────────┐
+│                        前端展示层                            │
+│    Web 界面 (Gradio) │ 微信公众号 │ 小程序                  │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP/WebSocket
+┌────────────────────────▼────────────────────────────────────┐
+│                      后端服务层 (FastAPI)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │ 意图识别  │  │ 对话管理  │  │ 知识检索  │  │ 回答生成  │   │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────┐
+│                      数据与模型层                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │  向量数据库   │  │  知识库文档   │  │   大语言模型      │  │
+│  │ (ChromaDB)   │  │ (校园FAQ等)  │  │   (API调用)      │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└─────────────────────────────────────────────────────────────┘</div>
+
+            <h3>2.2 技术选型</h3>
+            <table>
+                <tr>
+                    <th>组件</th>
+                    <th>技术方案</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td><strong>编程语言</strong></td>
+                    <td>Python 3.10+</td>
+                    <td>生态完善，AI 库支持好</td>
+                </tr>
+                <tr>
+                    <td><strong>Web 框架</strong></td>
+                    <td>FastAPI</td>
+                    <td>高性能异步框架，自带 API 文档</td>
+                </tr>
+                <tr>
+                    <td><strong>前端界面</strong></td>
+                    <td>Gradio</td>
+                    <td>快速搭建，适合原型开发</td>
+                </tr>
+                <tr>
+                    <td><strong>大语言模型</strong></td>
+                    <td>DeepSeek API</td>
+                    <td>云端大模型，中文能力强</td>
+                </tr>
+                <tr>
+                    <td><strong>向量数据库</strong></td>
+                    <td>ChromaDB</td>
+                    <td>轻量级，无需额外部署</td>
+                </tr>
+                <tr>
+                    <td><strong>Embedding 模型</strong></td>
+                    <td>BGE-large-zh</td>
+                    <td>中文语义向量化</td>
+                </tr>
+                <tr>
+                    <td><strong>Prompt 框架</strong></td>
+                    <td>LangChain</td>
+                    <td>统一管理 RAG 流程</td>
+                </tr>
+                <tr>
+                    <td><strong>文档解析</strong></td>
+                    <td>PyPDF2 / python-docx</td>
+                    <td>解析校园文档</td>
+                </tr>
+            </table>
+
+            <h3>2.3 部署模式</h3>
+            <h4>API 调用模式</h4>
+            <ul>
+                <li>调用 DeepSeek / 通义千问 / 智谱 API</li>
+                <li>优点：零硬件要求、快速启动</li>
+                <li>缺点：有 API 调用费用、依赖网络</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>三、开发条件</h2>
+
+            <h3>3.1 硬件要求</h3>
+            <table>
+                <tr>
+                    <th>配置项</th>
+                    <th>要求</th>
+                </tr>
+                <tr>
+                    <td>CPU</td>
+                    <td>任意</td>
+                </tr>
+                <tr>
+                    <td>内存</td>
+                    <td>4GB+</td>
+                </tr>
+                <tr>
+                    <td>GPU</td>
+                    <td>不需要</td>
+                </tr>
+                <tr>
+                    <td>硬盘</td>
+                    <td>10GB 可用空间</td>
+                </tr>
+                <tr>
+                    <td>网络</td>
+                    <td>需要互联网连接</td>
+                </tr>
+            </table>
+
+            <h3>3.2 软件环境</h3>
+            <table>
+                <tr>
+                    <th>软件</th>
+                    <th>版本</th>
+                    <th>用途</th>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>3.10 或 3.11</td>
+                    <td>运行环境</td>
+                </tr>
+                <tr>
+                    <td>pip</td>
+                    <td>最新版</td>
+                    <td>包管理</td>
+                </tr>
+                <tr>
+                    <td>Git</td>
+                    <td>最新版</td>
+                    <td>版本控制</td>
+                </tr>
+                <tr>
+                    <td>VS Code</td>
+                    <td>最新版</td>
+                    <td>代码编辑器</td>
+                </tr>
+            </table>
+
+            <h3>3.3 API 申请</h3>
+            <div class="info-box">
+                <strong>需要申请大模型API：</strong>
+                <ul>
+                    <li><strong>DeepSeek API</strong>：<a href="https://platform.deepseek.com/" target="_blank">https://platform.deepseek.com/</a>（注册送 500 万 token 免费额度）</li>
+                    <li><strong>通义千问 API</strong>：<a href="https://dashscope.aliyun.com/" target="_blank">https://dashscope.aliyun.com/</a>（注册送免费额度）</li>
+                    <li><strong>智谱 API</strong>：<a href="https://open.bigmodel.cn/" target="_blank">https://open.bigmodel.cn/</a>（注册送免费额度）</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>四、项目结构</h2>
+            <div class="tree">campus-qa-bot/
+├── docs/                        # 开发文档
+│   └── README.md
+├── config/                      # 配置文件
+│   ├── config.yaml              # 主配置
+│   └── .env                     # 环境变量（API Key等）
+├── knowledge_base/              # 知识库
+│   ├── faq/                     # FAQ 文档
+│   │   ├── 教务管理.md
+│   │   ├── 校园生活.md
+│   │   ├── 图书馆.md
+│   │   ├── 选课指南.md
+│   │   └── 考试安排.md
+│   └── processed/               # 向量化后的数据
+├── src/                         # 源代码
+│   ├── main.py                  # FastAPI 主入口
+│   ├── config.py                # 配置加载
+│   ├── api/                     # API 路由
+│   │   └── chat.py
+│   ├── core/                    # 核心模块
+│   │   ├── llm.py              # 大模型封装
+│   │   ├── retriever.py        # 知识检索
+│   │   ├── agent.py            # Agent 逻辑
+│   │   └── knowledge_loader.py # 知识库加载
+│   ├── utils/                   # 工具函数
+│   │   ├── document_parser.py  # 文档解析
+│   │   └── text_splitter.py    # 文本分块
+│   └── frontend/               # 前端页面
+│       └── app.py
+├── tests/                       # 测试
+├── scripts/                     # 脚本
+│   ├── build_kb.py             # 构建知识库
+│   └── start.sh                # 启动脚本
+├── requirements.txt             # 依赖列表
+└── README.md</div>
+        </div>
+
+        <div class="section">
+            <h2>五、开发步骤（分阶段）</h2>
+
+            <h3>阶段一：环境搭建（第 1 天）</h3>
+            <h4>步骤 1：安装 Python 环境</h4>
+            <pre><code># 下载并安装 Python 3.11
+# Windows: https://www.python.org/downloads/
+# 安装时勾选 "Add Python to PATH"
+
+# 验证安装
+python --version
+pip --version</code></pre>
+
+            <h4>步骤 2：创建项目目录</h4>
+            <pre><code># 创建项目文件夹
+mkdir campus-qa-bot
+cd campus-qa-bot
+
+# 创建子目录
+mkdir -p config knowledge_base/faq knowledge_base/processed src/api src/core src/utils src/frontend tests scripts docs</code></pre>
+
+            <h4>步骤 3：创建虚拟环境</h4>
+            <pre><code># 创建虚拟环境
+python -m venv venv
+
+# 激活虚拟环境
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+# 升级 pip
+pip install --upgrade pip</code></pre>
+
+            <h4>步骤 4：安装基础依赖</h4>
+            <pre><code># 创建 requirements.txt
+pip install fastapi uvicorn python-dotenv pyyaml requests
+
+# 保存依赖
+pip freeze > requirements.txt</code></pre>
+
+            <hr>
+
+            <h3>阶段二：构建知识库（第 2-3 天）</h3>
+            <h4>步骤 1：准备 FAQ 知识库文档</h4>
+            <p>在 <code>knowledge_base/faq/</code> 目录下创建 Markdown 文件，内容示例：</p>
+
+            <p><strong>教务管理.md</strong>:</p>
+            <pre><code># 教务管理常见问题
+
+## 选课
+- Q: 什么时候可以选课？
+  A: 每学期选课分为三个阶段：预选（开学前两周）、正选（开学第一周）、补退选（开学第二周）。具体时间请关注教务处通知。
+
+- Q: 选课系统在哪里登录？
+  A: 登录学校教务管理系统 https://jwxt.xxx.edu.cn，使用学号和密码登录。
+
+## 成绩查询
+- Q: 如何查询成绩？
+  A: 登录教务系统，在"成绩查询"模块可以查看各学期成绩。期末考试结束后约两周可查询。
+
+- Q: 成绩有误怎么办？
+  A: 如发现成绩有误，请在开学后一周内向所在学院教务办提交成绩复核申请。</code></pre>
+
+            <p><strong>校园生活.md</strong>:</p>
+            <pre><code># 校园生活常见问题
+
+## 食堂
+- Q: 食堂几点开门？
+  A: 早餐 6:30-9:00，午餐 11:00-13:00，晚餐 17:00-19:30。
+
+- Q: 食堂支持哪些支付方式？
+  A: 支持校园卡、微信支付、支付宝支付。
+
+## 宿舍
+- Q: 宿舍断电时间是？
+  A: 周日到周四晚 23:00 断电，周五周六晚 24:00 断电。空调和独立卫生间供电不受影响。
+
+- Q: 如何报修宿舍设施？
+  A: 通过"智慧校园"App 提交报修申请，或联系宿管阿姨登记。</code></pre>
+
+            <h4>步骤 2：编写文档解析与加载模块</h4>
+            <p>后续将编写 <code>knowledge_loader.py</code> 来：</p>
+            <ol>
+                <li>读取 Markdown 文件</li>
+                <li>将文档按段落/问答对拆分成小块</li>
+                <li>使用 Embedding 模型将文本转为向量</li>
+                <li>存入 ChromaDB 向量数据库</li>
+            </ol>
+
+            <hr>
+
+            <h3>阶段三：搭建大模型接口（第 3-4 天）</h3>
+            <h4>步骤 1：获取 API Key</h4>
+            <ul>
+                <li>注册 DeepSeek 开放平台账号</li>
+                <li>获取 API Key</li>
+            </ul>
+
+            <h4>步骤 2：配置环境变量</h4>
+            <p>创建 <code>config/.env</code>:</p>
+            <pre><code>DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx</code></pre>
+
+            <h4>步骤 3：编写 LLM 封装模块</h4>
+            <p>文件：<code>src/core/llm.py</code></p>
+            <ul>
+                <li>封装 DeepSeek API 调用</li>
+                <li>支持流式输出</li>
+            </ul>
+
+            <hr>
+
+            <h3>阶段四：实现 RAG 检索增强（第 4-5 天）</h3>
+            <h4>步骤 1：安装向量数据库和 Embedding 模型</h4>
+            <pre><code>pip install chromadb sentence-transformers</code></pre>
+
+            <h4>步骤 2：编写检索模块</h4>
+            <p>文件：<code>src/core/retriever.py</code></p>
+            <ul>
+                <li>接收用户问题</li>
+                <li>使用 Embedding 模型将问题转为向量</li>
+                <li>在 ChromaDB 中检索最相关的 Top-K 知识片段</li>
+                <li>返回检索结果</li>
+            </ul>
+
+            <h4>步骤 3：编写 Prompt 模板</h4>
+            <pre><code>prompt_template = """你是一个校园答疑助手。请根据以下参考资料回答学生的问题。
+如果参考资料中没有相关信息，请诚实地说"抱歉，我没有找到相关信息，建议您联系学校相关部门咨询"。
+
+参考资料：
+{context}
+
+学生问题：{question}
+
+请用友好、简洁的语言回答："""</code></pre>
+
+            <hr>
+
+            <h3>阶段五：编写 Agent 核心逻辑（第 5-6 天）</h3>
+            <h4>步骤 1：编写 Agent 模块</h4>
+            <p>文件：<code>src/core/agent.py</code></p>
+            <ul>
+                <li>接收用户输入</li>
+                <li>调用检索器获取相关知识</li>
+                <li>构建 Prompt（问题 + 知识）</li>
+                <li>调用 LLM 生成回答</li>
+                <li>返回结果</li>
+            </ul>
+
+            <h4>步骤 2：设计多轮对话管理</h4>
+            <ul>
+                <li>使用消息历史列表记录对话</li>
+                <li>控制上下文窗口长度（避免超长）</li>
+                <li>支持会话 ID 区分不同用户</li>
+            </ul>
+
+            <hr>
+
+            <h3>阶段六：搭建 Web API（第 6-7 天）</h3>
+            <h4>步骤 1：创建 FastAPI 服务</h4>
+            <p>文件：<code>src/main.py</code></p>
+            <pre><code># 基本 API 结构
+POST /api/chat          # 发送消息，获取回复（流式/非流式）
+GET  /api/health        # 健康检查
+GET  /api/history/{id}  # 获取对话历史</code></pre>
+
+            <h4>步骤 2：添加 CORS 中间件</h4>
+            <p>允许前端跨域请求</p>
+
+            <h4>步骤 3：编写前端页面</h4>
+            <p>文件：<code>src/frontend/app.py</code></p>
+            <ul>
+                <li>使用 Gradio 搭建聊天界面</li>
+                <li>支持 Markdown 渲染</li>
+                <li>支持流式显示回答</li>
+            </ul>
+
+            <hr>
+
+            <h3>阶段七：测试与优化（第 7-8 天）</h3>
+            <h4>步骤 1：功能测试</h4>
+            <ul>
+                <li>测试各类问题的回答准确性</li>
+                <li>测试边界情况（空问题、超长问题、无关问题）</li>
+            </ul>
+
+            <h4>步骤 2：性能优化</h4>
+            <ul>
+                <li>优化检索速度</li>
+                <li>优化 Prompt，减少 token 消耗</li>
+                <li>添加回答缓存</li>
+            </ul>
+
+            <h4>步骤 3：用户体验优化</h4>
+            <ul>
+                <li>添加"加载中"提示</li>
+                <li>优化回答格式</li>
+                <li>添加反馈功能（点赞/点踩）</li>
+            </ul>
+
+            <hr>
+
+            <h3>阶段八：部署上线（第 8-10 天）</h3>
+            <h4>本地运行</h4>
+            <pre><code># 启动后端服务
+uvicorn src.main:app --host 0.0.0.0 --port 8000
+
+# 启动前端界面
+python src/frontend/app.py</code></pre>
+
+            <h4>Docker 部署</h4>
+            <pre><code>FROM python:3.11-slim
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+EXPOSE 8000
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+
+            <h4>云服务器部署</h4>
+            <ul>
+                <li>购买轻量云服务器（如阿里云、腾讯云）</li>
+                <li>部署到服务器</li>
+                <li>配置域名和 HTTPS</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>六、关键技术详解</h2>
+
+            <h3>6.1 RAG（检索增强生成）原理</h3>
+            <div class="tree">用户提问 → Embedding → 向量检索 → Top-K 文档片段
+                                      ↓
+                                   Prompt 组装
+                                      ↓
+                              LLM 生成回答 → 返回用户</div>
+
+            <h3>6.2 文本分块策略</h3>
+            <ul>
+                <li><strong>按问答对分块</strong>：每对 Q&A 作为一个 chunk（推荐）</li>
+                <li><strong>按段落分块</strong>：每 200-500 字为一个 chunk</li>
+                <li><strong>重叠窗口</strong>：相邻 chunk 重叠 50-100 字，避免信息断裂</li>
+            </ul>
+
+            <h3>6.3 Prompt 工程</h3>
+            <p>关键要素：</p>
+            <ol>
+                <li><strong>角色设定</strong>：明确 AI 助手身份</li>
+                <li><strong>参考资料</strong>：注入检索到的知识片段</li>
+                <li><strong>回答约束</strong>：要求基于参考资料回答，不编造</li>
+                <li><strong>格式要求</strong>：简洁友好的语言风格</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>七、常见问题与解决</h2>
+            <table>
+                <tr>
+                    <th>问题</th>
+                    <th>解决方案</th>
+                </tr>
+                <tr>
+                    <td>模型回答不准确</td>
+                    <td>优化 Prompt，增加检索数量，检查知识库内容</td>
+                </tr>
+                <tr>
+                    <td>检索速度慢</td>
+                    <td>优化 Embedding 模型，使用更小的模型</td>
+                </tr>
+                <tr>
+                    <td>中文乱码</td>
+                    <td>确保文件编码为 UTF-8</td>
+                </tr>
+                <tr>
+                    <td>API 调用失败</td>
+                    <td>检查网络和 API Key 是否正确</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>八、项目时间规划</h2>
+            <table>
+                <tr>
+                    <th>阶段</th>
+                    <th>内容</th>
+                    <th>预计时间</th>
+                </tr>
+                <tr>
+                    <td>阶段一</td>
+                    <td>环境搭建</td>
+                    <td>第 1 天</td>
+                </tr>
+                <tr>
+                    <td>阶段二</td>
+                    <td>知识库构建</td>
+                    <td>第 2-3 天</td>
+                </tr>
+                <tr>
+                    <td>阶段三</td>
+                    <td>大模型接口</td>
+                    <td>第 3-4 天</td>
+                </tr>
+                <tr>
+                    <td>阶段四</td>
+                    <td>RAG 检索增强</td>
+                    <td>第 4-5 天</td>
+                </tr>
+                <tr>
+                    <td>阶段五</td>
+                    <td>Agent 核心</td>
+                    <td>第 5-6 天</td>
+                </tr>
+                <tr>
+                    <td>阶段六</td>
+                    <td>Web API 与前端</td>
+                    <td>第 6-7 天</td>
+                </tr>
+                <tr>
+                    <td>阶段七</td>
+                    <td>测试优化</td>
+                    <td>第 7-8 天</td>
+                </tr>
+                <tr>
+                    <td>阶段八</td>
+                    <td>部署上线</td>
+                    <td>第 8-10 天</td>
+                </tr>
+            </table>
+            <div class="highlight">
+                <strong>总周期：约 10 天</strong>（每天投入 3-4 小时）
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>九、后续可扩展方向</h2>
+            <ol>
+                <li><strong>接入微信公众号</strong>：使用 WeChat API 实现微信端问答</li>
+                <li><strong>语音交互</strong>：集成语音识别（ASR）和语音合成（TTS）</li>
+                <li><strong>图片理解</strong>：支持学生上传课表、通知等图片进行识别</li>
+                <li><strong>多语言支持</strong>：支持英文、日文等外语问答</li>
+                <li><strong>数据分析</strong>：统计高频问题，优化知识库</li>
+                <li><strong>个性化推荐</strong>：根据学生专业、年级推荐相关课程信息</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>十、参考资源</h2>
+            <ul>
+                <li><a href="https://python.langchain.com/" target="_blank">LangChain 中文文档</a></li>
+                <li><a href="https://docs.trychroma.com/" target="_blank">ChromaDB 文档</a></li>
+                <li><a href="https://platform.deepseek.com/api-docs" target="_blank">DeepSeek API 文档</a></li>
+                <li><a href="https://www.gradio.app/docs" target="_blank">Gradio 文档</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

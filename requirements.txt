@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+pyyaml
+requests
+chromadb
+sentence-transformers
+gradio
+python-docx
+PyPDF2

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术路线图 - 校园答疑智能客服 AI Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        h2 {
+            color: #11998e;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #11998e;
+        }
+        h3 {
+            color: #4a5568;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+        }
+        h4 {
+            color: #2d3748;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background: #11998e;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        tr:hover {
+            background: #edf2f7;
+        }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 15px 20px;
+            border-left: 4px solid #11998e;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        .info-box {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        a {
+            color: #11998e;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #11998e, transparent);
+            margin: 30px 0;
+        }
+        .tree {
+            background: #1e293b;
+            color: #a5f3fc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: "Consolas", monospace;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+        .nav-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .nav-box strong {
+            color: #fef08a;
+        }
+        .step-day {
+            background: #f0fdf4;
+            border-left: 4px solid #11998e;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .step-day strong {
+            color: #11998e;
+        }
+        .faq-item {
+            background: #f8fafc;
+            border-left: 3px solid #6366f1;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .faq-item strong {
+            color: #6366f1;
+        }
+        .action-step {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #f59e0b;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>技术路线图</h1>
+            <p>校园答疑智能客服 AI Agent - 从零到一完整指南</p>
+        </div>
+
+        <div class="section">
+            <h2>快速导航</h2>
+            <div class="nav-box">
+                <pre style="background: transparent; color: white; margin: 0; padding: 0;">你在哪里？    → 你想去哪里？
+──────────────────────────────────────
+小白新手      →  完成本项目（10天）
+有Python基础  →  跳过阶段一，直接开发
+有AI经验      →  参考架构图，跳过基础步骤</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>一、核心技术栈</h2>
+            <div class="tree">前端：Gradio（最快上手）
+后端：FastAPI（高性能异步API）
+大模型：DeepSeek API（在线，零门槛）
+向量数据库：ChromaDB（轻量，无需部署）
+Embedding：BGE-large-zh（中文语义理解）
+框架：LangChain（简化RAG开发）</div>
+        </div>
+
+        <div class="section">
+            <h2>二、API 调用方案</h2>
+
+            <table>
+                <tr>
+                    <th>优势</th>
+                    <th>劣势</th>
+                </tr>
+                <tr>
+                    <td>✅ 无需 GPU，任意电脑可运行</td>
+                    <td>❌ 需要互联网</td>
+                </tr>
+                <tr>
+                    <td>✅ 注册即用，配置简单</td>
+                    <td>❌ 有 API 调用费用</td>
+                </tr>
+                <tr>
+                    <td>✅ 模型质量更高（云端大模型）</td>
+                    <td>❌ 数据发送到云端</td>
+                </tr>
+            </table>
+
+            <div class="info-box">
+                <strong>适合人群</strong>：没有 GPU、想快速看到效果的新手
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>三、开发阶段详细路线图</h2>
+
+            <div class="step-day">
+                <strong>第 1 天 ─── 环境搭建</strong>
+                <ul>
+                    <li>安装 Python 3.11</li>
+                    <li>创建项目目录结构</li>
+                    <li>创建虚拟环境</li>
+                    <li>安装基础依赖</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 2-3 天 ── 知识库构建</strong>
+                <ul>
+                    <li>收集/编写校园 FAQ 文档
+                        <ul>
+                            <li>教务管理（选课、成绩、学籍）</li>
+                            <li>校园生活（食堂、宿舍、超市）</li>
+                            <li>设施服务（图书馆、体育馆、网络）</li>
+                            <li>常用电话（保卫处、校医院、心理咨询）</li>
+                        </ul>
+                    </li>
+                    <li>安装 ChromaDB 和 Embedding 模型</li>
+                    <li>编写文档解析与分块逻辑</li>
+                    <li>测试向量检索效果</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 3-4 天 ── 大模型接口</strong>
+                <ul>
+                    <li>申请 DeepSeek API Key</li>
+                    <li>编写 LLM 封装模块</li>
+                    <li>测试模型基本对话能力</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 4-5 天 ── RAG 检索增强</strong>
+                <ul>
+                    <li>编写检索模块（问题→向量→检索）</li>
+                    <li>设计 Prompt 模板</li>
+                    <li>串联：检索+Prompt+LLM</li>
+                    <li>测试 RAG 问答效果</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 5-6 天 ── Agent 核心逻辑</strong>
+                <ul>
+                    <li>编写 Agent 主循环</li>
+                    <li>实现多轮对话管理</li>
+                    <li>添加会话历史</li>
+                    <li>处理边界情况</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 6-7 天 ── Web API 与前端</strong>
+                <ul>
+                    <li>创建 FastAPI 后端服务</li>
+                    <li>添加 CORS 支持</li>
+                    <li>搭建 Gradio 前端界面</li>
+                    <li>测试前后端联调</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 7-8 天 ── 测试优化</strong>
+                <ul>
+                    <li>功能测试（各类问题）</li>
+                    <li>性能优化（响应速度）</li>
+                    <li>Prompt 优化（回答质量）</li>
+                    <li>用户体验优化</li>
+                </ul>
+            </div>
+
+            <div class="step-day">
+                <strong>第 8-10 天 ── 部署上线</strong>
+                <ul>
+                    <li>选择部署方式
+                        <ul>
+                            <li>本地运行</li>
+                            <li>Docker 容器化</li>
+                            <li>云服务器</li>
+                        </ul>
+                    </li>
+                    <li>编写启动脚本和说明文档</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>四、关键代码模块职责</h2>
+            <div class="tree">src/
+├── main.py              # FastAPI 主入口，启动服务
+├── config.py            # 加载配置文件
+├── api/
+│   └── chat.py          # 聊天 API 路由
+├── core/
+│   ├── llm.py           # 大模型封装（统一接口）
+│   ├── retriever.py     # 知识检索（向量搜索）
+│   ├── agent.py         # Agent 核心（串联各模块）
+│   └── knowledge_loader.py  # 知识库加载与向量化
+├── utils/
+│   ├── document_parser.py   # 解析 Markdown/Word/PDF
+│   └── text_splitter.py     # 文本分块
+└── frontend/
+    └── app.py           # Gradio 聊天界面</div>
+        </div>
+
+        <div class="section">
+            <h2>五、技术原理简述</h2>
+
+            <h3>5.1 什么是 RAG？</h3>
+            <div class="tree">传统 LLM：  问题 → LLM → 回答（可能编造）
+
+RAG：       问题 → 检索相关文档 → 文档+问题 → LLM → 回答（基于事实）</div>
+
+            <p><strong>RAG 的好处：</strong></p>
+            <ul>
+                <li>回答更准确（基于实际文档）</li>
+                <li>可随时更新知识库</li>
+                <li>减少模型幻觉（胡说八道）</li>
+            </ul>
+
+            <hr>
+
+            <h3>5.2 Embedding 是什么？</h3>
+            <div class="tree">"选课系统在哪里？" → [0.12, 0.85, 0.33, ...] （一串数字）
+
+通过向量相似度，找到最相关的文档片段</div>
+
+            <hr>
+
+            <h3>5.3 向量数据库是什么？</h3>
+            <p><strong>传统数据库</strong>：<code>WHERE name = '张三'</code>（精确匹配）</p>
+            <p><strong>向量数据库</strong>：<code>找到与问题意思最接近的 5 段文字</code>（语义匹配）</p>
+        </div>
+
+        <div class="section">
+            <h2>六、新手常见疑问</h2>
+
+            <div class="faq-item">
+                <strong>Q1：我没有 GPU 能做吗？</strong>
+                <p><strong>可以！</strong> 本项目使用 API 调用方式，用 DeepSeek API，普通电脑就能跑。</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q2：需要多少 Python 基础？</strong>
+                <p>会基本的变量、函数、列表操作即可。本项目代码量约 500-800 行，有注释讲解。</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q3：需要多少时间？</strong>
+                <p>每天投入 3-4 小时，约 10 天可以完成基础版本。</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q4：知识库需要多少内容？</strong>
+                <p>初始版本准备 50-100 个常见问题即可，后续可逐步扩充。</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q5：部署到云服务器需要多少钱？</strong>
+                <p>轻量应用服务器约 50-100 元/月，够用于学习和小规模使用。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>七、立即开始行动</h2>
+
+            <div class="action-step">
+                <strong>第一步（今天就能做）：</strong>
+                <ol>
+                    <li>安装 Python 3.11：<a href="https://www.python.org/downloads/" target="_blank">https://www.python.org/downloads/</a></li>
+                    <li>安装 VS Code：<a href="https://code.visualstudio.com/" target="_blank">https://code.visualstudio.com/</a></li>
+                    <li>注册 DeepSeek API：<a href="https://platform.deepseek.com/" target="_blank">https://platform.deepseek.com/</a></li>
+                    <li>阅读本文档，理解整体架构</li>
+                </ol>
+            </div>
+
+            <div class="action-step">
+                <strong>第二步（明天开始）：</strong>
+                <ol>
+                    <li>按照阶段一搭建开发环境</li>
+                    <li>准备 10 个校园 FAQ 问题</li>
+                    <li>开始编写代码</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
