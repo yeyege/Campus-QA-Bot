@@ -21,9 +21,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from src.core.agent import CampusAgent
-from src.core.feedback import feedback_manager
-from src.core.exceptions import CampusQAError, LLMError, RetrievalError
-from src.core.logger import logger
 
 # 创建路由器，所有路由前缀为 /api，归类为 "chat" 标签
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -110,20 +107,14 @@ async def chat(request: ChatRequest):
     """
     try:
         agent = get_agent()
+        # 如果客户端没传 session_id，生成一个新的 UUID 作为会话标识
         session_id = request.session_id or str(uuid.uuid4())
 
         response = agent.chat(request.message, session_id, request.top_k)
 
         return ChatResponse(response=response, session_id=session_id)
-    except LLMError as e:
-        logger.log_error(e, {"question": request.message})
-        raise HTTPException(status_code=503, detail="AI服务暂时不可用，请稍后再试")
-    except RetrievalError as e:
-        logger.log_error(e, {"question": request.message})
-        raise HTTPException(status_code=500, detail="知识库检索失败，请稍后再试")
     except Exception as e:
-        logger.log_error(e, {"question": request.message, "session_id": request.session_id})
-        raise HTTPException(status_code=500, detail="服务器内部错误，请稍后再试")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/chat/stream")
@@ -151,20 +142,17 @@ async def chat_stream(request: ChatRequest):
 
         def generate():
             """生成器：逐块产生SSE格式的响应数据"""
-            full_response = ""
-            for chunk in agent.chat_stream(request.message, session_id, request.top_k):
-                full_response += chunk
-                yield f"data: {chunk}\n\n"
-            yield f"data: [DONE]\n\n"
-            yield f"data: {{\"session_id\": \"{session_id}\"}}\n\n"
+            try:
+                for chunk_text in agent.chat_stream(request.message, session_id, request.top_k):
+                    yield f"data: {chunk_text}\n\n"
+                yield f"data: [DONE]\n\n"
+                yield f"data: {{\"session_id\": \"{session_id}\"}}\n\n"
+            except GeneratorExit:
+                pass
 
         return StreamingResponse(generate(), media_type="text/event-stream")
-    except LLMError as e:
-        logger.log_error(e, {"question": request.message})
-        raise HTTPException(status_code=503, detail="AI服务暂时不可用，请稍后再试")
     except Exception as e:
-        logger.log_error(e, {"question": request.message})
-        raise HTTPException(status_code=500, detail="服务器内部错误，请稍后再试")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/history/{session_id}", response_model=HistoryResponse)
@@ -197,63 +185,3 @@ async def clear_history(session_id: str):
     agent = get_agent()
     agent.clear_history(session_id)
     return {"status": "cleared", "session_id": session_id}
-
-
-# ==================== 反馈相关接口 ====================
-
-class FeedbackRequest(BaseModel):
-    """反馈请求模型"""
-    message_id: str
-    is_positive: bool
-    session_id: Optional[str] = None
-    comment: Optional[str] = None
-
-
-@router.post("/feedback")
-async def add_feedback(request: FeedbackRequest):
-    """
-    添加用户反馈（点赞/点踩）
-
-    Args:
-        request: 包含消息ID、反馈类型、会话ID等
-
-    Returns:
-        dict: 反馈结果
-    """
-    try:
-        feedback = feedback_manager.add_feedback(
-            message_id=request.message_id,
-            is_positive=request.is_positive,
-            session_id=request.session_id,
-            comment=request.comment
-        )
-        return {"status": "success", "feedback": feedback}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/feedback/stats")
-async def get_feedback_stats():
-    """
-    获取反馈统计信息
-
-    Returns:
-        dict: 包含总反馈数、点赞数、踩数、好评率
-    """
-    stats = feedback_manager.get_statistics()
-    return stats
-
-
-@router.get("/feedback/{message_id}")
-async def get_message_feedback(message_id: str):
-    """
-    获取指定消息的反馈
-
-    Args:
-        message_id: 消息ID
-
-    Returns:
-        dict: 该消息的反馈列表
-    """
-    feedbacks = feedback_manager.get_feedback(message_id)
-    return {"message_id": message_id, "feedbacks": feedbacks}

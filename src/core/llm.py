@@ -67,25 +67,26 @@ class XiaomiMimoClient(LLMClient):
             "model": self.model,
             "messages": messages,
             "temperature": temperature or self.temperature,
-            "max_tokens": max_tokens or self.max_tokens
+            "max_tokens": max_tokens or self.max_tokens,
+            "no_think": True
         }
         response = self._make_request(data, stream=False)
         result = response.json()
         message = result["choices"][0]["message"]
         content = message.get("content", "") or ""
-        # mimo-v2.5推理模型的回复可能在reasoning_content中
         if not content:
             content = message.get("reasoning_content", "") or ""
         return content
 
-    def chat_stream(self, messages: List[Dict], temperature: float = None, max_tokens: int = None) -> Generator[str, None, None]:
-        """流式聊天"""
+    def chat_stream(self, messages: List[Dict], temperature: float = None, max_tokens: int = None) -> Generator[tuple, None, None]:
+        """流式聊天，yield ("thinking", text) 或 ("answer", text)"""
         data = {
             "model": self.model,
             "messages": messages,
             "temperature": temperature or self.temperature,
             "max_tokens": max_tokens or self.max_tokens,
-            "stream": True
+            "stream": True,
+            "no_think": True
         }
         response = self._make_request(data, stream=True)
 
@@ -101,9 +102,12 @@ class XiaomiMimoClient(LLMClient):
                     chunk = json.loads(line)
                     if "choices" in chunk and chunk["choices"]:
                         delta = chunk["choices"][0].get("delta", {})
+                        reasoning = delta.get("reasoning_content", "")
                         content = delta.get("content", "")
+                        if reasoning:
+                            yield ("thinking", reasoning)
                         if content:
-                            yield content
+                            yield ("answer", content)
                 except:
                     continue
 
