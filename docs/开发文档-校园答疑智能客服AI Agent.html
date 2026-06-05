@@ -160,20 +160,22 @@
             <h3>1.1 项目目标</h3>
             <p>构建一个基于大语言模型（LLM）的校园答疑智能客服系统，能够回答学生关于校园生活、教务管理、选课、考试、图书馆、食堂、宿舍等方面的常见问题。通过API调用云端大模型，无需本地GPU硬件。</p>
 
-            <h3>1.2 核心功能</h3>
+            <h3>1.2 核心功能（已实现）</h3>
             <ul>
-                <li><strong>智能问答</strong>：基于校园知识库回答学生问题</li>
-                <li><strong>多轮对话</strong>：支持上下文理解，连续对话</li>
-                <li><strong>知识检索增强</strong>：结合检索增强生成（RAG）技术，提升回答准确性</li>
-                <li><strong>意图识别</strong>：识别学生问题属于哪个类别（教务、生活、设施等）</li>
-                <li><strong>多渠道接入</strong>：支持 Web 页面、微信公众号等前端入口</li>
+                <li><strong>智能问答</strong>：基于校园知识库（7大类FAQ，100+问答对）回答学生问题</li>
+                <li><strong>多轮对话</strong>：支持上下文理解，连续对话，会话历史持久化到JSON文件</li>
+                <li><strong>RAG检索增强</strong>：ChromaDB向量检索 + BGE-small-zh Embedding，精准匹配相关知识</li>
+                <li><strong>流式输出</strong>：SSE流式返回，实时显示回答生成过程</li>
+                <li><strong>自定义Web前端</strong>：类ChatGPT风格界面，支持会话管理、快捷问题、消息操作</li>
+                <li><strong>模型缓存</strong>：Embedding模型单例缓存 + 检索结果LRU缓存，提升响应速度</li>
             </ul>
 
             <h3>1.3 技术特色</h3>
             <ul>
-                <li>零GPU要求：通过API调用云端大模型</li>
+                <li>零GPU要求：通过小米Mimo API调用云端大模型</li>
                 <li>低门槛：适合个人开发者或小团队</li>
-                <li>可扩展：知识库可灵活更新</li>
+                <li>可扩展：知识库可灵活更新，支持多格式文档</li>
+                <li>高性能：模型预加载 + 检索缓存，首次响应快速</li>
             </ul>
         </div>
 
@@ -225,37 +227,42 @@
                 </tr>
                 <tr>
                     <td><strong>大语言模型</strong></td>
-                    <td>DeepSeek API</td>
-                    <td>云端大模型，中文能力强</td>
+                    <td>小米 Mimo API (mimo-v2.5)</td>
+                    <td>云端大模型，支持流式输出，中文能力强</td>
                 </tr>
                 <tr>
                     <td><strong>向量数据库</strong></td>
                     <td>ChromaDB</td>
-                    <td>轻量级，无需额外部署</td>
+                    <td>轻量级，嵌入式部署，无需额外服务</td>
                 </tr>
                 <tr>
                     <td><strong>Embedding 模型</strong></td>
-                    <td>BGE-large-zh</td>
-                    <td>中文语义向量化</td>
+                    <td>BGE-small-zh-v1.5</td>
+                    <td>轻量中文语义向量化，启动速度快</td>
                 </tr>
                 <tr>
                     <td><strong>Prompt 框架</strong></td>
-                    <td>LangChain</td>
-                    <td>统一管理 RAG 流程</td>
+                    <td>自定义Prompt模板</td>
+                    <td>针对校园场景优化的系统提示词</td>
                 </tr>
                 <tr>
-                    <td><strong>文档解析</strong></td>
-                    <td>PyPDF2 / python-docx</td>
-                    <td>解析校园文档</td>
+                    <td><strong>前端界面</strong></td>
+                    <td>自定义 HTML/CSS/JS</td>
+                    <td>类ChatGPT风格，支持会话管理和流式显示</td>
                 </tr>
             </table>
 
             <h3>2.3 部署模式</h3>
-            <h4>API 调用模式</h4>
+            <h4>API 调用模式（当前）</h4>
             <ul>
-                <li>调用 DeepSeek / 通义千问 / 智谱 API</li>
-                <li>优点：零硬件要求、快速启动</li>
+                <li>调用小米 Mimo API（mimo-v2.5）</li>
+                <li>优点：零硬件要求、快速启动、流式输出支持好</li>
                 <li>缺点：有 API 调用费用、依赖网络</li>
+            </ul>
+            <h4>启动方式</h4>
+            <ul>
+                <li><strong>FastAPI模式</strong>：uvicorn 启动后端API（端口8000）</li>
+                <li><strong>Gradio模式</strong>：python src/frontend/app.py 启动Gradio界面（端口7860）</li>
             </ul>
         </div>
 
@@ -323,9 +330,9 @@
             <div class="info-box">
                 <strong>需要申请大模型API：</strong>
                 <ul>
+                    <li><strong>小米 Mimo API</strong>（当前使用）：注册获取API Key，支持mimo-v2.5模型</li>
                     <li><strong>DeepSeek API</strong>：<a href="https://platform.deepseek.com/" target="_blank">https://platform.deepseek.com/</a>（注册送 500 万 token 免费额度）</li>
                     <li><strong>通义千问 API</strong>：<a href="https://dashscope.aliyun.com/" target="_blank">https://dashscope.aliyun.com/</a>（注册送免费额度）</li>
-                    <li><strong>智谱 API</strong>：<a href="https://open.bigmodel.cn/" target="_blank">https://open.bigmodel.cn/</a>（注册送免费额度）</li>
                 </ul>
             </div>
         </div>
@@ -334,39 +341,44 @@
             <h2>四、项目结构</h2>
             <div class="tree">campus-qa-bot/
 ├── docs/                        # 开发文档
-│   └── README.md
+│   ├── 开发文档-校园答疑智能客服AI Agent.html
+│   ├── 技术路线图-校园答疑智能客服AI Agent.html
+│   ├── 项目优化方案.md
+│   └── 项目对比分析.md
 ├── config/                      # 配置文件
-│   ├── config.yaml              # 主配置
-│   └── .env                     # 环境变量（API Key等）
+│   ├── config.yaml              # 主配置（LLM/向量库/检索参数）
+│   ├── .env                     # 环境变量（API Key等，不提交git）
+│   └── .env.example             # 环境变量示例
 ├── knowledge_base/              # 知识库
-│   ├── faq/                     # FAQ 文档
-│   │   ├── 教务管理.md
-│   │   ├── 校园生活.md
-│   │   ├── 图书馆.md
-│   │   ├── 选课指南.md
-│   │   └── 考试安排.md
-│   └── processed/               # 向量化后的数据
+│   ├── faq/                     # FAQ 文档（7个分类）
+│   │   ├── 教务管理.md          # 选课、成绩、学籍
+│   │   ├── 校园生活.md          # 食堂、宿舍、购物
+│   │   ├── 图书馆.md            # 借阅、电子资源、研讨室
+│   │   ├── 桂林理工大学.md      # 学校概况、校区、社团、奖助学金
+│   │   ├── 学院专业.md          # 学院设置、专业信息、转专业
+│   │   ├── 常用电话.md          # 各部门联系方式
+│   │   └── 设施服务.md          # 网络、体育、医疗、心理咨询
+│   └── processed/               # ChromaDB向量化数据
 ├── src/                         # 源代码
-│   ├── main.py                  # FastAPI 主入口
-│   ├── config.py                # 配置加载
+│   ├── __init__.py
+│   ├── main.py                  # FastAPI 主入口（端口8000）
 │   ├── api/                     # API 路由
-│   │   └── chat.py
+│   │   ├── __init__.py
+│   │   └── chat.py             # 聊天API（同步/流式/历史/清除）
 │   ├── core/                    # 核心模块
-│   │   ├── llm.py              # 大模型封装
-│   │   ├── retriever.py        # 知识检索
-│   │   ├── agent.py            # Agent 逻辑
-│   │   └── knowledge_loader.py # 知识库加载
+│   │   ├── __init__.py
+│   │   ├── llm.py              # 大模型封装（小米Mimo API）
+│   │   ├── agent.py            # Agent核心（多轮对话+RAG）
+│   │   ├── knowledge_loader.py # 知识库加载与向量化
+│   │   ├── cache.py            # 模型缓存+检索LRU缓存
+│   │   └── conversation.py     # 对话历史管理（持久化到JSON）
 │   ├── utils/                   # 工具函数
-│   │   ├── document_parser.py  # 文档解析
-│   │   └── text_splitter.py    # 文本分块
+│   │   └── __init__.py
 │   └── frontend/               # 前端页面
-│       └── app.py
-├── tests/                       # 测试
-├── scripts/                     # 脚本
-│   ├── build_kb.py             # 构建知识库
-│   └── start.sh                # 启动脚本
-├── requirements.txt             # 依赖列表
-└── README.md</div>
+│       ├── __init__.py
+│       ├── index.html          # 自定义Web前端（类ChatGPT风格）
+│       └── app.py              # Gradio备用界面
+└── requirements.txt             # 依赖列表</div>
         </div>
 
         <div class="section">
@@ -573,11 +585,16 @@ GET  /api/history/{id}  # 获取对话历史</code></pre>
 
             <h3>阶段八：部署上线（第 8-10 天）</h3>
             <h4>本地运行</h4>
-            <pre><code># 启动后端服务
-uvicorn src.main:app --host 0.0.0.0 --port 8000
+            <pre><code># 方式一：FastAPI + 自定义前端（推荐）
+python src/main.py
+# 访问 http://127.0.0.1:8000
 
-# 启动前端界面
-python src/frontend/app.py</code></pre>
+# 方式二：Gradio界面
+python src/frontend/app.py
+# 访问 http://127.0.0.1:7860
+
+# 构建知识库（首次或更新FAQ后执行）
+python src/core/knowledge_loader.py</code></pre>
 
             <h4>Docker 部署</h4>
             <pre><code>FROM python:3.11-slim
@@ -585,7 +602,7 @@ WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
 EXPOSE 8000
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+CMD ["python", "src/main.py"]</code></pre>
 
             <h4>云服务器部署</h4>
             <ul>
@@ -631,19 +648,27 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></p
                 </tr>
                 <tr>
                     <td>模型回答不准确</td>
-                    <td>优化 Prompt，增加检索数量，检查知识库内容</td>
+                    <td>优化Prompt模板，增加检索数量，检查知识库内容是否覆盖该问题</td>
                 </tr>
                 <tr>
-                    <td>检索速度慢</td>
-                    <td>优化 Embedding 模型，使用更小的模型</td>
+                    <td>首次响应慢</td>
+                    <td>Embedding模型预加载（启动时自动完成），后续请求走缓存</td>
                 </tr>
                 <tr>
                     <td>中文乱码</td>
-                    <td>确保文件编码为 UTF-8</td>
+                    <td>确保文件编码为 UTF-8，环境变量设置 HF_ENDPOINT 镜像</td>
                 </tr>
                 <tr>
                     <td>API 调用失败</td>
-                    <td>检查网络和 API Key 是否正确</td>
+                    <td>检查 config/.env 中的 XIAOMI_API_KEY 是否正确，网络是否通畅</td>
+                </tr>
+                <tr>
+                    <td>模型输出包含思考过程</td>
+                    <td>已通过 no_think 参数和 _parse_answer 方法过滤思考过程</td>
+                </tr>
+                <tr>
+                    <td>知识库未更新</td>
+                    <td>修改FAQ文件后，重新运行 python src/core/knowledge_loader.py 构建</td>
                 </tr>
             </table>
         </div>
@@ -705,22 +730,23 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></p
         <div class="section">
             <h2>九、后续可扩展方向</h2>
             <ol>
+                <li><strong>用户反馈系统</strong>：添加点赞/点踩功能，收集回答质量数据</li>
+                <li><strong>意图识别</strong>：识别问题类别（教务/生活/设施），精准路由到对应知识库</li>
+                <li><strong>管理后台</strong>：Web界面管理知识库，支持FAQ增删改查</li>
                 <li><strong>接入微信公众号</strong>：使用 WeChat API 实现微信端问答</li>
-                <li><strong>语音交互</strong>：集成语音识别（ASR）和语音合成（TTS）</li>
-                <li><strong>图片理解</strong>：支持学生上传课表、通知等图片进行识别</li>
-                <li><strong>多语言支持</strong>：支持英文、日文等外语问答</li>
-                <li><strong>数据分析</strong>：统计高频问题，优化知识库</li>
-                <li><strong>个性化推荐</strong>：根据学生专业、年级推荐相关课程信息</li>
+                <li><strong>数据分析</strong>：统计高频问题、热点分析，优化知识库</li>
+                <li><strong>Docker容器化</strong>：一键部署，方便运维</li>
+                <li><strong>单元测试</strong>：为核心模块添加测试用例，保障代码质量</li>
             </ol>
         </div>
 
         <div class="section">
             <h2>十、参考资源</h2>
             <ul>
-                <li><a href="https://python.langchain.com/" target="_blank">LangChain 中文文档</a></li>
                 <li><a href="https://docs.trychroma.com/" target="_blank">ChromaDB 文档</a></li>
-                <li><a href="https://platform.deepseek.com/api-docs" target="_blank">DeepSeek API 文档</a></li>
                 <li><a href="https://www.gradio.app/docs" target="_blank">Gradio 文档</a></li>
+                <li><a href="https://platform.deepseek.com/api-docs" target="_blank">DeepSeek API 文档</a></li>
+                <li>小米 Mimo API 文档（内部）</li>
             </ul>
         </div>
     </div>

@@ -7,7 +7,6 @@ from typing import List, Dict
 
 # 设置HuggingFace镜像
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-# 启用离线模式（优先使用本地缓存）
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_HUB_OFFLINE"] = "1"
 

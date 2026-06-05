@@ -134,6 +134,14 @@ body {
 .msg.assistant .msg-bubble { background: #f3f4f6; color: #333; border-bottom-left-radius: 4px; }
 .msg-time { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 .msg.user .msg-time { text-align: right; }
+.msg-actions { display: flex; gap: 4px; margin-top: 4px; }
+.msg-action {
+    background: none; border: none; cursor: pointer; padding: 3px 6px;
+    border-radius: 4px; color: #9ca3af; font-size: 12px; display: flex;
+    align-items: center; gap: 3px; transition: all .15s;
+}
+.msg-action:hover { background: #f3f4f6; color: #3b82f6; }
+.msg-action svg { width: 13px; height: 13px; }
 
 /* typing indicator */
 .typing-dots { display: flex; gap: 4px; padding: 4px 0; }
@@ -180,6 +188,17 @@ body {
 
 /* ===== Empty State ===== */
 .empty-hint { color: #9ca3af; font-size: 13px; text-align: center; padding: 40px 0; }
+
+/* ===== Quick Questions ===== */
+.quick-questions { padding: 12px 24px 0; flex-shrink: 0; }
+.quick-label { font-size: 12px; color: #9ca3af; margin-bottom: 8px; }
+.quick-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-btn {
+    padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 16px;
+    background: #fff; color: #4b5563; font-size: 13px; cursor: pointer;
+    transition: all .15s; white-space: nowrap;
+}
+.quick-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
 </style>
 </head>
 <body>
@@ -239,6 +258,16 @@ body {
                 </div>
             </div>
             <div class="chat-messages" id="chatMessages"></div>
+            <div class="quick-questions" id="quickQuestions">
+                <div class="quick-label">常见问题</div>
+                <div class="quick-list">
+                    <button class="quick-btn" data-q="食堂几点开门？">食堂几点开门？</button>
+                    <button class="quick-btn" data-q="选课系统在哪里？">选课系统在哪里？</button>
+                    <button class="quick-btn" data-q="如何查询成绩？">如何查询成绩？</button>
+                    <button class="quick-btn" data-q="图书馆怎么借书？">图书馆怎么借书？</button>
+                    <button class="quick-btn" data-q="桂林理工大学有哪些学院？">桂林理工大学有哪些学院？</button>
+                </div>
+            </div>
             <div class="input-area">
                 <button class="attach-btn" title="添加附件">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -258,13 +287,12 @@ body {
 // ============================================================
 // Config
 // ============================================================
-const API_BASE = 'http://127.0.0.1:8000';
-const GREETING = '你好！我是你的AI助手，有什么可以帮助你的吗？';
+const API_BASE = '';
 
 // ============================================================
 // State
 // ============================================================
-let sessions = {};          // { sid: { title, time, messages: [{role, content, time}] } }
+let sessions = {};
 let currentSessionId = null;
 
 // ============================================================
@@ -278,7 +306,7 @@ function createSession() {
     sessions[sid] = {
         title: '新会话',
         time: now(),
-        messages: [{ role: 'assistant', content: GREETING, time: now() }]
+        messages: [{ role: 'assistant', content: '你好！我是你的AI助手，有什么可以帮助你的吗？', time: now() }]
     };
     return sid;
 }
@@ -311,7 +339,6 @@ function renderSessionList(filter = '') {
                 </div>`;
         }).join('');
 
-    // bind clicks
     el.querySelectorAll('.session-item').forEach(item => {
         item.addEventListener('click', e => {
             if (e.target.closest('.session-item-del')) return;
@@ -338,12 +365,24 @@ function renderMessages() {
         const isUser = m.role === 'user';
         const cls = isUser ? 'user' : 'assistant';
         const avatar = isUser ? '我' : '助';
+        const actions = isUser ? '' : `
+            <div class="msg-actions">
+                <button class="msg-action" onclick="copyMsg(this)" title="复制">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    复制
+                </button>
+                <button class="msg-action" onclick="regenerate(this)" title="重新生成">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    重新生成
+                </button>
+            </div>`;
         return `
             <div class="msg ${cls}">
                 <div class="msg-avatar">${avatar}</div>
                 <div class="msg-body">
                     <div class="msg-bubble">${esc(m.content)}</div>
                     <div class="msg-time">${m.time || ''}</div>
+                    ${actions}
                 </div>
             </div>`;
     }).join('');
@@ -369,13 +408,21 @@ function appendMessage(role, content, time) {
     return el.lastElementChild;
 }
 
-function updateLastBubble(text) {
-    const el = document.getElementById('chatMessages');
-    const bubbles = el.querySelectorAll('.msg.assistant .msg-bubble');
-    if (bubbles.length) {
-        bubbles[bubbles.length - 1].textContent = text;
-        el.scrollTop = el.scrollHeight;
-    }
+function addMsgActions(msgEl) {
+    const body = msgEl.querySelector('.msg-body');
+    if (body.querySelector('.msg-actions')) return;
+    const html = `
+        <div class="msg-actions">
+            <button class="msg-action" onclick="copyMsg(this)" title="复制">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                复制
+            </button>
+            <button class="msg-action" onclick="regenerate(this)" title="重新生成">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                重新生成
+            </button>
+        </div>`;
+    body.insertAdjacentHTML('beforeend', html);
 }
 
 function showTyping() {
@@ -384,7 +431,7 @@ function showTyping() {
         <div class="msg assistant" id="typingMsg">
             <div class="msg-avatar">助</div>
             <div class="msg-body">
-                <div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+                <div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div><span style="color:#9ca3af;font-size:13px;margin-left:6px">思考中...</span></div>
             </div>
         </div>`;
     el.insertAdjacentHTML('beforeend', html);
@@ -426,7 +473,7 @@ function newSession() {
 }
 
 // ============================================================
-// Chat (Streaming via SSE)
+// Chat (Streaming via fetch + ReadableStream)
 // ============================================================
 async function sendMessage() {
     const input = document.getElementById('msgInput');
@@ -437,7 +484,6 @@ async function sendMessage() {
     autoResize(input);
     const ts = now();
 
-    // ensure session exists
     if (!sessions[currentSessionId]) {
         sessions[currentSessionId] = { title: '新会话', time: ts, messages: [] };
     }
@@ -468,43 +514,59 @@ async function sendMessage() {
 
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
-        removeTyping();
         let full = '';
-        appendMessage('assistant', '', ts);
-        const bubbles = document.querySelectorAll('.msg.assistant .msg-bubble');
-        const bubble = bubbles[bubbles.length - 1];
+        let bubble = null;
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-            for (const line of lines) {
-                if (!line.startsWith('data: ')) continue;
-                const data = line.slice(6).trim();
-                if (data === '[DONE]') continue;
-                try {
-                    const obj = JSON.parse(data);
-                    if (obj.session_id) continue;
-                } catch {
-                    // plain text chunk
-                    full += data;
-                    bubble.textContent = full;
-                    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-                }
+        function processLine(line) {
+            line = line.trim();
+            if (!line.startsWith('data: ')) return;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') return;
+            if (data.startsWith('{')) { try { JSON.parse(data); return; } catch {} }
+
+            full += data;
+
+            if (!bubble) {
+                // first answer chunk — remove typing, create bubble
+                removeTyping();
+                appendMessage('assistant', '', ts);
+                const allBubbles = document.querySelectorAll('.msg.assistant .msg-bubble');
+                bubble = allBubbles[allBubbles.length - 1];
             }
+            bubble.textContent = full;
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
         }
 
+        while (true) {
+            const { done, value } = await reader.read();
+            buffer += decoder.decode(value, { stream: !done });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) processLine(line);
+            if (done) break;
+        }
+        if (buffer.trim()) processLine(buffer);
+
+        // 兜底：流结束但没收到任何数据
+        if (!bubble) {
+            removeTyping();
+            appendMessage('assistant', '抱歉，未能获取到回复，请重试。', ts);
+        }
+
+        // store answer
         session.messages.push({ role: 'assistant', content: full, time: ts });
+        // add action buttons after streaming complete
+        const lastAssistant = document.querySelectorAll('.msg.assistant');
+        addMsgActions(lastAssistant[lastAssistant.length - 1]);
     } catch (err) {
         removeTyping();
         const errMsg = '抱歉，处理您的问题时出现错误：' + err.message;
-        appendMessage('assistant', errMsg, ts);
+        const errEl = appendMessage('assistant', errMsg, ts);
+        addMsgActions(errEl);
         session.messages.push({ role: 'assistant', content: errMsg, time: ts });
     }
 
@@ -526,29 +588,71 @@ function autoResize(ta) {
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
 }
 
+function copyMsg(btn) {
+    const bubble = btn.closest('.msg-body').querySelector('.msg-bubble');
+    navigator.clipboard.writeText(bubble.textContent).then(() => {
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>已复制`;
+        setTimeout(() => {
+            btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制`;
+        }, 1500);
+    });
+}
+
+function regenerate(btn) {
+    const msgEl = btn.closest('.msg');
+    const session = sessions[currentSessionId];
+    if (!session) return;
+
+    // find the last user message
+    let lastUserMsg = null;
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+        if (session.messages[i].role === 'user') {
+            lastUserMsg = session.messages[i].content;
+            break;
+        }
+    }
+    if (!lastUserMsg) return;
+
+    // remove last assistant message from state and DOM
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+        if (session.messages[i].role === 'assistant') {
+            session.messages.splice(i, 1);
+            break;
+        }
+    }
+    msgEl.remove();
+
+    // re-send
+    document.getElementById('msgInput').value = lastUserMsg;
+    sendMessage();
+}
+
 // ============================================================
 // Init
 // ============================================================
 (function init() {
-    // create default session
     const sid = createSession();
     currentSessionId = sid;
     renderSessionList();
     renderMessages();
 
-    // event: send
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('msgInput').addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
     document.getElementById('msgInput').addEventListener('input', function() { autoResize(this); });
-
-    // event: new session
     document.getElementById('newSessionBtn').addEventListener('click', newSession);
-
-    // event: search
     document.getElementById('searchInput').addEventListener('input', function() {
         renderSessionList(this.value);
+    });
+
+    // quick question buttons
+    document.getElementById('quickQuestions').addEventListener('click', function(e) {
+        const btn = e.target.closest('.quick-btn');
+        if (!btn) return;
+        const q = btn.dataset.q;
+        document.getElementById('msgInput').value = q;
+        sendMessage();
     });
 })();
 </script>

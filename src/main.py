@@ -1,27 +1,28 @@
+# -*- coding: utf-8 -*-
 """
 校园答疑智能客服 - FastAPI主入口
 """
 import os
 import sys
 
-# 设置环境变量
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
 
-# 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from src.api.chat import router as chat_router
 
-# 创建FastAPI应用
 app = FastAPI(
     title="校园答疑智能客服 API",
     description="基于RAG的校园答疑系统API",
     version="1.0.0"
 )
 
-# 添加CORS中间件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,20 +31,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册路由
 app.include_router(chat_router)
+
+# 前端目录
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
 
 
 @app.get("/")
 async def root():
-    """根路径"""
-    return {
-        "message": "校园答疑智能客服 API",
-        "docs": "/docs",
-        "health": "/api/health"
-    }
+    """返回前端页面"""
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
+# 挂载静态文件（CSS/JS/图片等）
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+@app.on_event("startup")
+async def startup_event():
+    """启动时预加载模型"""
+    print("正在预加载 Embedding 模型...")
+    from src.core.cache import get_embedding_model
+    get_embedding_model()
+    print("Embedding 模型加载完成")
 
 
 if __name__ == "__main__":
     import uvicorn
+    print("启动服务: http://127.0.0.1:8000")
     uvicorn.run(app, host="127.0.0.1", port=8000)
