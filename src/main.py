@@ -11,16 +11,29 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from src.api.chat import router as chat_router
 
+
+@asynccontextmanager
+async def lifespan(app):
+    """启动时预加载模型"""
+    print("正在预加载 Embedding 模型...")
+    from src.core.cache import get_embedding_model
+    get_embedding_model()
+    print("Embedding 模型加载完成")
+    yield
+
+
 app = FastAPI(
     title="校园答疑智能客服 API",
     description="基于RAG的校园答疑系统API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -45,15 +58,6 @@ async def root():
 
 # 挂载静态文件（CSS/JS/图片等）
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-
-
-@app.on_event("startup")
-async def startup_event():
-    """启动时预加载模型"""
-    print("正在预加载 Embedding 模型...")
-    from src.core.cache import get_embedding_model
-    get_embedding_model()
-    print("Embedding 模型加载完成")
 
 
 if __name__ == "__main__":
