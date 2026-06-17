@@ -61,9 +61,11 @@ class ChatResponse(BaseModel):
     Attributes:
         response: 智能客服的回复内容
         session_id: 会话ID，客户端需保存此ID用于后续对话
+        images: 相关图片URL列表
     """
     response: str
     session_id: str
+    images: List[str] = []
 
 
 class HistoryResponse(BaseModel):
@@ -110,9 +112,13 @@ async def chat(request: ChatRequest):
         # 如果客户端没传 session_id，生成一个新的 UUID 作为会话标识
         session_id = request.session_id or str(uuid.uuid4())
 
-        response = agent.chat(request.message, session_id, request.top_k)
+        result = agent.chat(request.message, session_id, request.top_k)
 
-        return ChatResponse(response=response, session_id=session_id)
+        return ChatResponse(
+            response=result["text"],
+            session_id=session_id,
+            images=result.get("images", [])
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -143,8 +149,14 @@ async def chat_stream(request: ChatRequest):
         def generate():
             """生成器：逐块产生SSE格式的响应数据"""
             try:
-                for chunk_text in agent.chat_stream(request.message, session_id, request.top_k):
-                    yield f"data: {chunk_text}\n\n"
+                for chunk in agent.chat_stream(request.message, session_id, request.top_k):
+                    if chunk["type"] == "text":
+                        yield f"data: {chunk['content']}\n\n"
+                    elif chunk["type"] == "images":
+                        # 发送图片数据
+                        import json
+                        images_json = json.dumps(chunk["content"])
+                        yield f"data: {{\"images\": {images_json}}}\n\n"
                 yield f"data: [DONE]\n\n"
                 yield f"data: {{\"session_id\": \"{session_id}\"}}\n\n"
             except GeneratorExit:

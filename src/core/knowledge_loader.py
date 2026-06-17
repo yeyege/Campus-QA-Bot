@@ -3,8 +3,12 @@
 读取FAQ文档，分割成chunks，存入ChromaDB
 """
 import os
+import sys
 import re
 from typing import List, Tuple
+
+# 添加项目根目录到 Python 模块搜索路径
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import chromadb
 
