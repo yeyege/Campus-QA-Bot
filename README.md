@@ -66,7 +66,19 @@ LLM_TEMPERATURE=0.5
 ```bash
 python -m src.core.knowledge_loader
 ```
+改知识库的完整流程：
 
+# 1. 先 cd 到项目根目录
+cd D:\agentproject
+
+# 2. 编辑 md 文件
+# ...
+
+# 3. 重建索引（确保在项目根目录执行）
+python src/core/knowledge_loader.py
+
+# 4. 重启服务
+python src/main.py
 ### 4. 启动服务
 
 ```bash
